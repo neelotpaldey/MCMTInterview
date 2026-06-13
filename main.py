@@ -1,72 +1,34 @@
 import streamlit as st
 import pandas as pd
 
-# ---------------------------
-# PAGE CONFIG
-# ---------------------------
-st.set_page_config(
-    page_title="Student Details Viewer",
-    page_icon="📋",
-    layout="wide"
-)
+st.set_page_config(page_title="Interview Evaluation", layout="wide")
 
-# ---------------------------
-# GOOGLE SHEET URL
-# ---------------------------
-SHEET_ID = "1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI"
-CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
+# Google Sheet CSV URL
+sheet_url = "https://docs.google.com/spreadsheets/d/1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI/export?format=csv"
 
-# ---------------------------
-# LOAD DATA
-# ---------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv(CSV_URL)
+    return pd.read_csv(sheet_url)
 
-try:
-    df = load_data()
+df = load_data()
 
-    st.title("📋 Student Details Viewer")
+st.title("Interview Evaluation Report")
 
-    if df.empty:
-        st.warning("No data found in the sheet.")
-        st.stop()
+# Name dropdown
+selected_name = st.selectbox(
+    "Select Student",
+    sorted(df["Name"].dropna().unique())
+)
 
-    # Use first column as dropdown column
-    name_column = df.columns[0]
+# Selected row
+student = df[df["Name"] == selected_name]
 
-    selected_name = st.selectbox(
-        f"Select {name_column}",
-        sorted(df[name_column].dropna().astype(str).unique())
-    )
+if not student.empty:
+    row = student.iloc[0]
 
-    result = df[df[name_column].astype(str) == selected_name]
+    st.subheader(f"Report Card: {selected_name}")
 
-    if not result.empty:
+    for col in df.columns:
+        st.metric(col, row[col])
 
-        row = result.iloc[0]
-
-        st.markdown("---")
-        st.subheader("Details")
-
-        cols = st.columns(2)
-
-        for i, column in enumerate(df.columns):
-            value = row[column]
-
-            with cols[i % 2]:
-                st.info(f"**{column}**\n\n{value}")
-
-        st.markdown("---")
-
-        with st.expander("View Complete Record"):
-            st.dataframe(result, use_container_width=True)
-
-    else:
-        st.error("Record not found.")
-
-except Exception as e:
-    st.error(f"Error loading Google Sheet: {e}")
-    st.info(
-        "Make sure the Google Sheet is shared as 'Anyone with the link can view'."
-    )
+    st.dataframe(student, use_container_width=True)
