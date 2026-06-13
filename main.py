@@ -32,10 +32,11 @@ try:
 
     # START WITH NAME DROPDOWN
     selected_name = st.selectbox(
-        "Select Name",
-        sorted(df["Name"].dropna().astype(str).unique()index=None,
-    placeholder="Select Name")
-    )
+    "Select Name",
+    sorted(df["Name"].dropna().astype(str).unique()),
+    index=None,
+    placeholder="Select Name"
+)
 
     result = df[df["Name"].astype(str) == selected_name]
 
