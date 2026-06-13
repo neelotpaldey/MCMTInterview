@@ -1,34 +1,66 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Interview Evaluation", layout="wide")
-
-# Google Sheet CSV URL
-sheet_url = "https://docs.google.com/spreadsheets/d/1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI/export?format=csv"
-
-@st.cache_data
-def load_data():
-    return pd.read_csv(sheet_url)
-
-df = load_data()
-
-st.title("Interview Evaluation Report")
-
-# Name dropdown
-selected_name = st.selectbox(
-    "Select Student",
-    sorted(df["Name"].dropna().unique())
+# ---------------------------
+# PAGE CONFIG
+# ---------------------------
+st.set_page_config(
+    page_title="Interview Evaluation",
+    page_icon="📋",
+    layout="wide"
 )
 
-# Selected row
-student = df[df["Name"] == selected_name]
+# ---------------------------
+# GOOGLE SHEET URL
+# ---------------------------
+SHEET_ID = "1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI"
+CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
-if not student.empty:
-    row = student.iloc[0]
+# ---------------------------
+# LOAD DATA
+# ---------------------------
+@st.cache_data
+def load_data():
+    return pd.read_csv(CSV_URL)
 
-    st.subheader(f"Report Card: {selected_name}")
+try:
+    df = load_data()
 
-    for col in df.columns:
-        st.metric(col, row[col])
+    if df.empty:
+        st.warning("No data found.")
+        st.stop()
 
-    st.dataframe(student, use_container_width=True)
+    # START WITH NAME DROPDOWN
+    selected_name = st.selectbox(
+        "Select Name",
+        sorted(df["Name"].dropna().astype(str).unique())
+    )
+
+    result = df[df["Name"].astype(str) == selected_name]
+
+    if not result.empty:
+
+        row = result.iloc[0]
+
+        st.markdown("## Student Evaluation Details")
+        st.markdown("---")
+
+        cols = st.columns(2)
+
+        for i, column in enumerate(df.columns):
+            value = row[column]
+
+            with cols[i % 2]:
+                st.info(f"**{column}**\n\n{value}")
+
+        st.markdown("---")
+
+        with st.expander("View Complete Record"):
+            st.dataframe(result, use_container_width=True)
+
+    else:
+        st.error("Record not found.")
+
+except Exception as e:
+    st.error(f"Error loading Google Sheet: {e}")
+    st.info("Ensure the Google Sheet is shared as 'Anyone with the link can view'.")
