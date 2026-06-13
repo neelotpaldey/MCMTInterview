@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-# GOOGLE SHEET URL
+# GOOGLE SHEET CONFIG
 # ---------------------------
 SHEET_ID = "1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI"
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
@@ -30,39 +30,46 @@ try:
         st.warning("No data found.")
         st.stop()
 
-    # START WITH NAME DROPDOWN
+    st.title("Interview Evaluation Report")
+
+    # Name Dropdown
     selected_name = st.selectbox(
-    "Select Name",
-    sorted(df["Name"].dropna().astype(str).unique()),
-    index=None,
-    placeholder="Select Name"
-)
+        "Select Name",
+        sorted(df["Name"].dropna().astype(str).unique()),
+        index=None,
+        placeholder="Select Name"
+    )
 
-    result = df[df["Name"].astype(str) == selected_name]
+    if selected_name:
 
-    if not result.empty:
+        result = df[df["Name"].astype(str) == selected_name]
 
-        row = result.iloc[0]
+        if not result.empty:
 
-        st.markdown("## Student Evaluation Details")
-        st.markdown("---")
+            row = result.iloc[0]
 
-        cols = st.columns(2)
+            st.markdown(f"## {selected_name}")
+            st.markdown("---")
 
-        for i, column in enumerate(df.columns):
-            value = row[column]
+            # Hide first 3 columns while displaying
+            display_columns = df.columns[3:]
 
-            with cols[i % 2]:
-                st.info(f"**{column}**\n\n{value}")
+            cols = st.columns(2)
 
-        st.markdown("---")
+            for i, column in enumerate(display_columns):
+                value = row[column]
 
-        with st.expander("View Complete Record"):
-            st.dataframe(result, use_container_width=True)
+                with cols[i % 2]:
+                    st.info(f"**{column}**\n\n{value}")
 
-    else:
-        st.error("Record not found.")
+            st.markdown("---")
+
+            with st.expander("View Complete Record"):
+                st.dataframe(
+                    result[display_columns],
+                    use_container_width=True
+                )
 
 except Exception as e:
     st.error(f"Error loading Google Sheet: {e}")
-    st.info("Ensure the Google Sheet is shared as 'Anyone with the link can view'.")
+    st.info("Make sure the Google Sheet is shared as 'Anyone with the link can view'.")
