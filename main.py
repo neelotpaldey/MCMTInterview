@@ -1,24 +1,15 @@
 import streamlit as st
 import pandas as pd
 
-# ---------------------------
-# PAGE CONFIG
-# ---------------------------
 st.set_page_config(
-    page_title="Interview Evaluation",
+    page_title="Interview Evaluation Report",
     page_icon="📋",
     layout="wide"
 )
 
-# ---------------------------
-# GOOGLE SHEET CONFIG
-# ---------------------------
-SHEET_ID = "1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI"
-CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
+# Sheet1 URL
+CSV_URL = "https://docs.google.com/spreadsheets/d/1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI/export?format=csv&gid=2049735784"
 
-# ---------------------------
-# LOAD DATA
-# ---------------------------
 @st.cache_data
 def load_data():
     return pd.read_csv(CSV_URL)
@@ -26,13 +17,8 @@ def load_data():
 try:
     df = load_data()
 
-    if df.empty:
-        st.warning("No data found.")
-        st.stop()
-
     st.title("Interview Evaluation Report")
 
-    # Name Dropdown
     selected_name = st.selectbox(
         "Select Name",
         sorted(df["Name"].dropna().astype(str).unique()),
@@ -42,34 +28,32 @@ try:
 
     if selected_name:
 
-        result = df[df["Name"].astype(str) == selected_name]
+        row = df[df["Name"].astype(str) == selected_name].iloc[0]
 
-        if not result.empty:
+        st.markdown(f"## {selected_name}")
 
-            row = result.iloc[0]
+        info1, info2, info3 = st.columns(3)
 
-            st.markdown(f"## {selected_name}")
-            st.markdown("---")
+        with info1:
+            st.info(f"**Class**\n\n{row['Class']}")
 
-            # Hide first 3 columns while displaying
-            display_columns = df.columns[3:]
+        with info2:
+            st.info(f"**Course**\n\n{row['Course']}")
 
-            cols = st.columns(2)
+        with info3:
+            st.info(f"**University**\n\n{row['University']}")
 
-            for i, column in enumerate(display_columns):
-                value = row[column]
+        st.markdown("---")
+        st.subheader("Evaluation Scores")
 
-                with cols[i % 2]:
-                    st.info(f"**{column}**\n\n{value}")
+        # Skip Name, Class, Course, University
+        score_columns = df.columns[4:]
 
-            st.markdown("---")
+        cols = st.columns(2)
 
-            with st.expander("View Complete Record"):
-                st.dataframe(
-                    result[display_columns],
-                    use_container_width=True
-                )
+        for i, col in enumerate(score_columns):
+            with cols[i % 2]:
+                st.info(f"**{col}**\n\n{row[col]}")
 
 except Exception as e:
-    st.error(f"Error loading Google Sheet: {e}")
-    st.info("Make sure the Google Sheet is shared as 'Anyone with the link can view'.")
+    st.error(f"Error loading data: {e}")
