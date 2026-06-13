@@ -7,8 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Sheet1 URL
-CSV_URL = "https://docs.google.com/spreadsheets/d/1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI/export?format=csv&gid=2049735784"
+CSV_URL = "https://docs.google.com/spreadsheets/d/1usmOYunAIXAcuoWdsOl139LSa3p_Mloe0Hmt1QqW-pI/export?format=csv"
 
 @st.cache_data
 def load_data():
@@ -32,22 +31,21 @@ try:
 
         st.markdown(f"## {selected_name}")
 
-        info1, info2, info3 = st.columns(3)
+        c1, c2, c3 = st.columns(3)
 
-        with info1:
+        with c1:
             st.info(f"**Class**\n\n{row['Class']}")
 
-        with info2:
+        with c2:
             st.info(f"**Course**\n\n{row['Course']}")
 
-        with info3:
+        with c3:
             st.info(f"**University**\n\n{row['University']}")
 
         st.markdown("---")
         st.subheader("Evaluation Scores")
 
-        # Skip Name, Class, Course, University
-        score_columns = df.columns[4:]
+        score_columns = df.columns[4:]  # Skip Name, Class, Course, University
 
         cols = st.columns(2)
 
