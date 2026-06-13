@@ -33,7 +33,7 @@ try:
     # START WITH NAME DROPDOWN
     selected_name = st.selectbox(
         "Select Name",
-        sorted(df["Name"].dropna().astype(str).unique())
+        sorted(df["Name"].dropna().astype(str).unique(), placeholder="Select Name")
     )
 
     result = df[df["Name"].astype(str) == selected_name]
